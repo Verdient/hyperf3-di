@@ -1,0 +1,12 @@
+{
+    "name": "verdient/hyperf3-di",
+    "type": "library",
+    "require": {
+        "hyperf/context": "^3.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Verdient\\Hyperf3\\Di\\": "src"
+        }
+    }
+}
