@@ -18,24 +18,46 @@ use Override;
 class ClassLoader extends DiClassLoader
 {
     /**
+     * @var array<class-string,string> 类映射
+     *
+     * @author Verdient。
+     */
+    protected static ?array $classMap = null;
+
+    /**
      * @author Verdient。
      */
     #[Override]
     public static function init(?string $proxyFileDirPath = null, ?string $configDir = null, ?ScanHandlerInterface $handler = null): void
     {
-        if (defined('BASE_PATH')) {
-            $classMap = [];
+        $classMap = static::getClassMap();
 
-            if (is_dir(constant('BASE_PATH') . '/packages/classMap')) {
-                $classMap = static::collectClassMap(constant('BASE_PATH') . '/packages/classMap');
-            }
-
-            if (!empty($classMap)) {
-                Composer::getLoader()->addClassMap($classMap);
-            }
+        if (!empty($classMap)) {
+            Composer::getLoader()->addClassMap($classMap);
         }
 
         parent::init($proxyFileDirPath, $configDir, $handler);
+    }
+
+    /**
+     * 获取类映射
+     *
+     * @return array<class-string,string>
+     * @author Verdient。
+     */
+    public static function getClassMap(): array
+    {
+        if (static::$classMap === null) {
+            static::$classMap = [];
+            if (defined('BASE_PATH')) {
+                $path = constant('BASE_PATH') . '/packages/classMap';
+                if (is_dir($path)) {
+                    static::$classMap = static::collectClassMap($path);
+                }
+            }
+        }
+
+        return static::$classMap;
     }
 
     /**
@@ -91,8 +113,8 @@ class ClassLoader extends DiClassLoader
                 }
             }
 
-            if ($tokens[$i][0] === T_CLASS) {
-                if ($tokens[$i - 1][0] !== T_PAAMAYIM_NEKUDOTAYIM) {
+            if (in_array($tokens[$i][0], [T_CLASS, T_INTERFACE, T_ENUM, T_TRAIT])) {
+                if ($i === 0 || $tokens[$i - 1][0] !== T_PAAMAYIM_NEKUDOTAYIM) {
                     for ($j = $i + 1; $j < $count; $j++) {
                         if ($tokens[$j][0] === T_STRING) {
                             $class = $tokens[$j][1];
