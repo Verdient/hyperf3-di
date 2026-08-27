@@ -30,13 +30,23 @@ class ClassLoader extends DiClassLoader
     #[Override]
     public static function init(?string $proxyFileDirPath = null, ?string $configDir = null, ?ScanHandlerInterface $handler = null): void
     {
+        static::initClassMap();
+
+        parent::init($proxyFileDirPath, $configDir, $handler);
+    }
+
+    /**
+     * 初始化类映射
+     *
+     * @author Verdient。
+     */
+    public static function initClassMap(): void
+    {
         $classMap = static::getClassMap();
 
         if (!empty($classMap)) {
             Composer::getLoader()->addClassMap($classMap);
         }
-
-        parent::init($proxyFileDirPath, $configDir, $handler);
     }
 
     /**
